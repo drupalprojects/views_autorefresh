@@ -44,19 +44,10 @@ function views_autorefresh_get_nodejs_views() {
   $eligible_views = array();
   foreach (views_get_enabled_views() as $view) {
     foreach ($view->display as $id => $display) {
-      if (isset($display->display_options['header']['autorefresh'])) {
-        // Show all displays except default and the secondary one
-        // because we don't know which one needs to be notified.
-        foreach ($view->display as $id2 => $display2) {
-          if (
-            $display2->display_plugin != 'default' &&
-            $id2 != $display->display_options['header']['autorefresh']['display']
-          ) {
-            $eligible_views[$view->name . '-' . $id2] = $view->human_name . ' - ' . $display2->display_title;
-          }
-        }
-        break;
-      }
+      if ($display->display_plugin == 'default') continue;
+      if (isset($display->display_options['header']) && empty($display->display_options['header']['autorefresh'])) continue;
+      if (empty($display->display_options['header']) && empty($view->display['default']->display_options['header']['autorefresh'])) continue;
+      $eligible_views[$view->name . '-' . $id] = $view->human_name . ' - ' . $display->display_title;
     }
   }
   natsort($eligible_views);

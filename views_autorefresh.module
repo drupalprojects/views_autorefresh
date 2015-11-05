@@ -20,6 +20,7 @@ function views_autorefresh_theme() {
         'interval' => NULL,
         'ping' => NULL,
         'incremental' => NULL,
+        'nodejs' => NULL,
         'view' => NULL,
       ),
     ),
@@ -40,18 +41,17 @@ function theme_views_autorefresh($variables) {
 
   // Add the JavaScript settings.
   drupal_add_js(drupal_get_path('module', 'views_autorefresh') . '/views_autorefresh.js');
-  drupal_add_js(array('views_autorefresh' => array($view->name . '-' . $view->current_display => array(
+  $settings = array(
     'interval' => $interval,
     'ping' => $ping,
     'incremental' => $incremental,
     'nodejs' => $nodejs,
-  ))), 'setting');
+  );
   $timestamp = views_autorefresh_get_timestamp($view);
   if ($timestamp) {
-    drupal_add_js(array('views_autorefresh' => array($view->name . '-' . $view->current_display => array(
-      'timestamp' => $timestamp,
-    ))), 'setting');
+    $settings['timestamp'] = $timestamp;
   }
+  drupal_add_js(array('views_autorefresh' => array($view->name . '-' . $view->current_display => $settings)), 'setting');
 
   // Signal modules to add their own plugins.
   module_invoke_all('views_autorefresh_plugins', $view);
@@ -71,7 +71,7 @@ function theme_views_autorefresh($variables) {
  * Implementation of hook_views_ajax_data_alter().
  */
 function views_autorefresh_views_ajax_data_alter(&$commands, $view) {
-  $autorefresh = views_autorefresh_get_settings($view);
+  $autorefresh = $view->header['autorefresh']->options;
   if (isset($_REQUEST['autorefresh']) && isset($autorefresh)) {
     foreach ($commands as $key => &$command) {
       if (
@@ -98,37 +98,18 @@ function views_autorefresh_views_ajax_data_alter(&$commands, $view) {
 }
 
 /**
- * Helper function to get autorefresh settings.
- */
-function views_autorefresh_get_settings($view) {
-  if (isset($view->display_handler->handlers['header']['autorefresh'])) {
-    return $view->display_handler->handlers['header']['autorefresh']->options;
-  }
-  foreach ($view->display as $id => $display) {
-    if (isset($display->display_options['header']['autorefresh'])) {
-      return $display->display_options['header']['autorefresh'];
-    }
-  }
-  return NULL;
-}
-
-/**
  * Helper function to return view's "timestamp" - either real timestamp or max primary key in view rows.
  */
 function views_autorefresh_get_timestamp($view) {
-  $autorefresh = views_autorefresh_get_settings($view);
-  if (empty($autorefresh)) return FALSE;
-
+  $autorefresh = $view->header['autorefresh']->options;
+  if (empty($autorefresh)) {
+    return FALSE;
+  }
   if (empty($autorefresh['incremental'])) {
     return time();
   }
-
-  $arguments = isset($view->display[$autorefresh['display']]->display_options['arguments']) ?
-    $view->display[$autorefresh['display']]->display_options['arguments'] :
-    $view->display['default']->display_options['arguments'];
-
-  foreach ($arguments as $argument) {
-    $handler = views_get_handler($argument['table'], $argument['field'], 'argument');
+  foreach ($view->argument as $argument) {
+    $handler = views_get_handler($argument->table, $argument->field, 'argument');
     if ($handler->definition['handler'] == 'views_autorefresh_handler_argument_date') {
       return time();
     }
@@ -142,22 +123,6 @@ function views_autorefresh_get_timestamp($view) {
   }
 
   return FALSE;
-}
-
-/**
- * Implements hook_views_pre_render().
- *
- * Reset information about first display instead of the second display (incremental approach only)
- * FIXME: Check if it's necessary to reset any further information
- */
-function views_autorefresh_views_pre_render(&$view) {
-  if (isset($_REQUEST['original_view_data']) &&
-      !empty($_REQUEST['original_view_data']['view_display_id']) &&
-      isset($_REQUEST['original_view_data']['view_dom_id']) &&
-      $_REQUEST['original_view_data']['view_dom_id'] == $view->dom_id
-  ) {
-    $view->current_display = $_REQUEST['original_view_data']['view_display_id'];
-  }
 }
 
 /**
