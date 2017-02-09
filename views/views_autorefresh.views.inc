@@ -42,4 +42,3 @@ function views_autorefresh_views_data_alter(&$data) {
     }
   }
 }
-

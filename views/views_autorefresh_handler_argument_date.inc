@@ -33,4 +33,3 @@ class views_autorefresh_handler_argument_date extends views_handler_argument {
     $this->query->add_where_expression(0, "{$this->table_alias}.{$this->real_field} {$this->operator} :date", array(':date' => $this->argument));
   }
 }
-
