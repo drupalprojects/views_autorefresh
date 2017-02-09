@@ -170,7 +170,7 @@ class views_autorefresh_handler_area_autorefresh extends views_handler_area {
       '#type' => 'checkbox',
       '#title' => t('Use a ping url'),
       '#default_value' => $this->options['ping'],
-      '#description' => t('Use a custom script for faster check of new items. See <code>ping.php.example</code> in <code>views_autorefresh</code> folder for reference.'),
+      '#description' => t('Use a custom script for faster check of new items. See <code>views_autorefresh_ping.default.php</code> in <code>views_autorefresh</code> folder for reference.'),
     );
     $form['ping_base_path'] = array(
       '#type' => 'textfield',

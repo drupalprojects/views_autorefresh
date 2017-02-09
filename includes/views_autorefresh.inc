@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Views Auto-Refresh ping script functions.
+ * Views Auto-Refresh ping script global functions.
  */
 
 /*

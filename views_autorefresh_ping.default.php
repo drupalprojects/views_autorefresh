@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Views Auto-Refresh example ping script.
+ * Views Auto-Refresh default ping script.
  *
  * This script is intended to be used as a starting point to copy and
  * adapt to your needs.
