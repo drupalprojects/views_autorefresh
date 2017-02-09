@@ -43,7 +43,7 @@ function theme_views_autorefresh($variables) {
   }
 
   // Add the JavaScript settings.
-  drupal_add_js(drupal_get_path('module', 'views_autorefresh') . '/views_autorefresh.js');
+  drupal_add_js(drupal_get_path('module', 'views_autorefresh') . '/js/views_autorefresh.js');
   drupal_add_js(array('views_autorefresh' => array($view->name . '-' . $view->current_display => array(
     'interval' => $interval,
     'ping' => $ping,
