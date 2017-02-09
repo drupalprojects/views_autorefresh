@@ -2,34 +2,71 @@
 
 /**
  * @file
- * Example ping script.
+ * Views Auto-Refresh example ping script.
  *
  * This script is intended to be used as a starting point to copy and
  * adapt to your needs.
  */
 
-define('DRUPAL_ROOT', '/path/to/drupal');
+// Optionally change included file directory.
+require 'includes/views_autorefresh.inc';
 
-// Prevent sql injection.
-$timestamp = $_GET['timestamp'];
+// Defines the root directory.
+define('DRUPAL_ROOT', '/PATH/TO/DRUPAL');
+// Optionally configure cache headers to either 'none', 'skip', or a numeric value (seconds).
+define('CACHE', 'none');
+// Optionally debug. Disable on production.
+define('DEBUG', FALSE);
 
-if (!is_numeric($timestamp)) {
-  die();
+_views_autorefresh_ping_init(CACHE, DEBUG);
+
+/*
+ * Helper function to get updated value.
+ */
+function _views_autorefresh_ping_get_updated($timestamp_request, $view_name = '', $view_display_id = '') {
+  $timestamp_updated = 0;
+
+  // Optionally add logic for different views.
+  //if ($view_name == 'VIEW_NAME' && $view_display_id == 'VIEW_DISPLAY_ID') {}
+
+  $db = _views_autorefresh_ping_connect_db();
+  // Optionally alter your database query.
+  $query = "SELECT count(nid) FROM node WHERE created > $timestamp_request;";
+
+  if ($result = $db->query($query)) {
+    $timestamp_updated = $result->fetchColumn();
+  }
+
+  // Normalize integer.
+  $timestamp_updated = (int) $timestamp_updated;
+
+  return $timestamp_updated;
 }
 
-// Connect to drupal database.
-require_once DRUPAL_ROOT . '/sites/default/settings.php';
+/*
+ * Helper function to connect to the default database.
+ */
+function _views_autorefresh_ping_connect_db() {
+  $db = NULL;
+  // Optionally change your settings file directory.
+  $settings = DRUPAL_ROOT . '/sites/default/settings.php';
 
-$creds = $databases['default']['default'];
-$constr = sprintf("%s:dbname=%s", $creds['driver'], $creds['database']);
-$db = new PDO($constr, $creds['username'], $creds['password']);
+  if (file_exists($settings)) {
+    require $settings;
 
-// Get count of new items.
-$result = $db->query("SELECT count(nid) FROM node WHERE created > $timestamp");
+    // $databases variable scoped by settings file above.
+    if (isset($databases) && $databases) {
+      // Optionally change which database to connect to.
+      $creds = $databases['default']['default'];
+      $constr = sprintf("%s:dbname=%s", $creds['driver'], $creds['database']);
+      $db = new PDO($constr, $creds['username'], $creds['password']);
+    }
+  }
 
-// HTTP headers to prevent caching the result of this call.
-header("Cache-Control: no-cache, must-revalidate"); // HTTP/1.1
-header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past (HTTP 1.0)
+  // Fail.
+  if (!$db) {
+    _views_autorefresh_ping_pong(0, 0, 0, 'Database connection error', CACHE, DEBUG);
+  }
 
-// JSON response.
-print '{"pong":"' . $result->fetchColumn() . '"}';
+  return $db;
+}
