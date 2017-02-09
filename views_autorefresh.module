@@ -19,6 +19,7 @@ function views_autorefresh_theme() {
       'variables' => array(
         'interval' => NULL,
         'ping' => NULL,
+        'trigger_onload' => NULL,
         'incremental' => NULL,
         'view' => NULL,
       ),
@@ -32,6 +33,7 @@ function views_autorefresh_theme() {
 function theme_views_autorefresh($variables) {
   $interval = $variables['interval'];
   $ping = $variables['ping'];
+  $trigger_onload = $variables['trigger_onload'];
   $incremental = $variables['incremental'];
   $nodejs = $variables['nodejs'];
   $view = $variables['view'];
@@ -43,6 +45,7 @@ function theme_views_autorefresh($variables) {
   drupal_add_js(array('views_autorefresh' => array($view->name . '-' . $view->current_display => array(
     'interval' => $interval,
     'ping' => $ping,
+    'trigger_onload' => $trigger_onload,
     'incremental' => $incremental,
     'nodejs' => $nodejs,
   ))), 'setting');

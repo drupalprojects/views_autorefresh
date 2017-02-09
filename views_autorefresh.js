@@ -24,6 +24,9 @@ Drupal.behaviors.views_autorefresh = {
       $.each(Drupal.settings.views.ajaxViews, function(i, settings) {
         var view_name = settings.view_name + '-' + settings.view_display_id;
 
+        // Carry over or default.
+        Drupal.views_autorefresh[view_name] = Drupal.views_autorefresh[view_name] || {};
+
         if (!(view_name in Drupal.settings.views_autorefresh)) {
           // This view has not got views_autorefresh behavior enabled, so exit
           // early to avoid potential errors.
@@ -100,8 +103,17 @@ Drupal.behaviors.views_autorefresh = {
 
                 Drupal.settings.views_autorefresh[view_name].ajax = new Drupal.ajax(view_name, Drupal.settings.views_autorefresh[view_name].anchor, element_settings);
 
+                // Optionally trigger refresh only once per load.
+                if (Drupal.settings.views_autorefresh[view_name].trigger_onload && !Drupal.views_autorefresh[view_name].loaded) {
+                  Drupal.views_autorefresh[view_name].loaded = true;
+
+                  // Trigger custom event on any plugin that needs to do extra work.
+                  $(Drupal.settings.views_autorefresh[view_name].target).trigger('autorefresh_onload', view_name);
+
+                  Drupal.views_autorefresh.refresh(view_name);
+                }
                 // Activate refresh timer if not using nodejs.
-                if (!Drupal.settings.views_autorefresh[view_name].nodejs) {
+                else if (!Drupal.settings.views_autorefresh[view_name].nodejs) {
                   clearTimeout(Drupal.settings.views_autorefresh[view_name].timer);
                   Drupal.views_autorefresh.timer(view_name);
                 }

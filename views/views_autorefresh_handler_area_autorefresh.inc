@@ -42,6 +42,9 @@ class views_autorefresh_handler_area_autorefresh extends views_handler_area {
     $options['ping'] = array('default' => FALSE, 'bool' => TRUE);
     $options['ping_base_path'] = array('default' => '');
     $options['ping_arguments'] = array('default' => '');
+
+    $options['trigger_onload'] = array('default' => FALSE, 'bool' => TRUE);
+
     return $options;
   }
 
@@ -185,6 +188,11 @@ class views_autorefresh_handler_area_autorefresh extends views_handler_area {
         'edit-options-ping' => array(1),
       ),
     );
+    $form['trigger_onload'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Trigger Refresh on Load'),
+      '#default_value' => $this->options['trigger_onload'],
+    );
   }
 
   function options_validate(&$form, &$form_state) {
@@ -218,6 +226,7 @@ class views_autorefresh_handler_area_autorefresh extends views_handler_area {
         'ping_args' => $this->eval_ping_arguments($this->options['ping_arguments']),
       );
     }
+    $args['trigger_onload'] = $this->options['trigger_onload'];
     if ($this->options['incremental']) {
       $display = $this->view->display[$this->options['display']];
 
