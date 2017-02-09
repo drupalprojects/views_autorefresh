@@ -6,7 +6,6 @@
  * @ingroup views_area_handlers
  */
 class views_autorefresh_handler_area_autorefresh extends views_handler_area {
-
   /**
    * Overrides views_handler_area::init().
    *
@@ -23,7 +22,6 @@ class views_autorefresh_handler_area_autorefresh extends views_handler_area {
     $options['nodejs'] = array('default' => FALSE, 'bool' => TRUE);
     $options['incremental'] = array('default' => FALSE, 'bool' => TRUE);
     $options['display'] = array('default' => '');
-
     $options['incremental_advanced'] = array(
       'contains' => array(
         'sourceSelector' => array('default' => '.view-content'),
@@ -38,11 +36,9 @@ class views_autorefresh_handler_area_autorefresh extends views_handler_area {
         'rowClassPrefix' => array('default' => 'views-row-'),
       )
     );
-
     $options['ping'] = array('default' => FALSE, 'bool' => TRUE);
     $options['ping_base_path'] = array('default' => '');
     $options['ping_arguments'] = array('default' => '');
-
     $options['trigger_onload'] = array('default' => FALSE, 'bool' => TRUE);
 
     return $options;
@@ -62,6 +58,7 @@ class views_autorefresh_handler_area_autorefresh extends views_handler_area {
         '#value' => FALSE,
       );
     }
+
     $form['interval'] = array(
       '#type' => 'textfield',
       '#title' => t('Interval to check for new items'),
@@ -77,13 +74,16 @@ class views_autorefresh_handler_area_autorefresh extends views_handler_area {
       '#title' => t('Use a secondary view display to incrementally insert new items only'),
       '#default_value' => $this->options['incremental'],
     );
+
     $options = array();
+
     foreach ($this->view->display as $display) {
       if ($display->display_plugin == 'page') {
         // TODO: check secondary display arguments.
         $options[$display->id] = $display->display_title;
       }
     }
+
     $form['display'] = array(
       '#type' => 'select',
       '#title' => t('Secondary display'),
@@ -199,12 +199,16 @@ class views_autorefresh_handler_area_autorefresh extends views_handler_area {
     if (!is_numeric($form_state['values']['options']['interval'])) {
       form_set_error('interval', t('Invalid interval.'));
     }
+
     if ($form_state['values']['options']['ping']) {
       $ping_base_path = DRUPAL_ROOT . '/' . $form_state['values']['options']['ping_base_path'];
+
       if (!file_exists($ping_base_path)) {
         form_set_error('ping_base_path', t('Ping script not found at %path.', array('%path' => $ping_base_path)));
       }
+
       $args = $this->eval_ping_arguments($form_state['values']['options']['ping_arguments']);
+
       if (!is_array($args)) {
         form_set_error('ping_arguments', t('Error in ping arguments script: %error', array('%error' => $args)));
       }
@@ -220,13 +224,16 @@ class views_autorefresh_handler_area_autorefresh extends views_handler_area {
     $args['view'] = $this->view;
     $args['nodejs'] = !empty($this->options['nodejs']);
     $args['interval'] = $this->options['interval'];
+
     if ($this->options['ping']) {
       $args['ping'] = array(
         'ping_base_path' => $this->options['ping_base_path'],
         'ping_args' => $this->eval_ping_arguments($this->options['ping_arguments']),
       );
     }
+
     $args['trigger_onload'] = $this->options['trigger_onload'];
+
     if ($this->options['incremental']) {
       $display = $this->view->display[$this->options['display']];
 
@@ -252,6 +259,7 @@ class views_autorefresh_handler_area_autorefresh extends views_handler_area {
 
   function eval_ping_arguments($script) {
     $args = array();
+
     if (empty($script)) return $args;
 
     // Make view visible to script.
@@ -259,7 +267,9 @@ class views_autorefresh_handler_area_autorefresh extends views_handler_area {
 
     // Avoid Drupal's error handler: http://www.php.net/manual/en/function.restore-error-handler.php#93261
     set_error_handler(create_function('$errno,$errstr', 'return false;'));
+
     $return = eval($script);
+
     if ($return === FALSE) {
       $error = error_get_last();
       $args = $error['message'];
@@ -270,7 +280,9 @@ class views_autorefresh_handler_area_autorefresh extends views_handler_area {
     else {
       $args = t('expecting an array of arguments, got a !type instead.', array('!type' => gettype($return)));
     }
+
     restore_error_handler();
+
     return $args;
   }
 }

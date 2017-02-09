@@ -16,6 +16,7 @@
  */
 function hook_views_autorefresh_nodejs_channel_alter(&$channel, $view) {
   $node = menu_get_object();
+
   if ($node && $node->type == 'story') {
     $channel .= '-' . $node->nid;
   }
@@ -34,7 +35,11 @@ function hook_views_autorefresh_nodejs_channel_alter(&$channel, $view) {
  *   message altering hook to perform its logic.
  */
 function hook_views_autorefresh_nodejs_message_alter(&$message, $context) {
-  if ($message->view_name == 'story_activity-page_1' && is_object($context) && !empty($context->nid)) {
+  if (
+    $message->view_name == 'story_activity-page_1' &&
+    is_object($context) &&
+    !empty($context->nid)
+  ) {
     $message->channel .= '-' . $context->nid;
   }
 }

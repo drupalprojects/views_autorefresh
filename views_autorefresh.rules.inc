@@ -12,6 +12,7 @@ function views_autorefresh_rules_action_info() {
   if (!module_exists('nodejs')) {
     return;
   }
+
   $items = array();
   $items['views_autorefresh'] = array(
     'label' => t('Autorefresh a View through Node.js'),
@@ -48,6 +49,7 @@ function views_autorefresh_rules_process($views, $context) {
  */
 function views_autorefresh_get_nodejs_views() {
   $eligible_views = array();
+
   foreach (views_get_enabled_views() as $view) {
     foreach ($view->display as $id => $display) {
       if (isset($display->display_options['header']['autorefresh'])) {
@@ -61,10 +63,13 @@ function views_autorefresh_get_nodejs_views() {
             $eligible_views[$view->name . '-' . $id2] = $view->human_name . ' - ' . $display2->display_title;
           }
         }
+
         break;
       }
     }
   }
+
   natsort($eligible_views);
+
   return $eligible_views;
 }

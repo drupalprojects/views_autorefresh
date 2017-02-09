@@ -6,6 +6,7 @@ class views_autorefresh_handler_argument_date extends views_handler_argument {
    */
   function construct() {
     parent::construct();
+
     $this->format = 'r';
     $this->operator = '>';
   }
@@ -15,6 +16,7 @@ class views_autorefresh_handler_argument_date extends views_handler_argument {
    */
   function summary_name($data) {
     $created = $data->{$this->name_alias};
+
     return empty($created) ? NULL : format_date(strtotime($created), 'custom', $this->format, NULL);
   }
 
@@ -30,6 +32,7 @@ class views_autorefresh_handler_argument_date extends views_handler_argument {
    */
   function query($group_by = FALSE) {
     $this->ensure_my_table();
+
     $this->query->add_where_expression(0, "{$this->table_alias}.{$this->real_field} {$this->operator} :date", array(':date' => $this->argument));
   }
 }

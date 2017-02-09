@@ -22,21 +22,27 @@ function views_autorefresh_views_data_alter(&$data) {
         $date['argument']['handler'] = 'views_autorefresh_handler_argument_date';
         $date['argument']['field'] = !empty($date['field']['field']) ? $date['field']['field'] :
           (!empty($date['real field']) ? $date['real field'] : $field_name);
+
         unset($date['filter'], $date['field'], $date['relationship'], $date['sort']);
+
         $data[$table_name][$field_name . '_operator'] = $date;
       }
     }
 
     // Add an operator-based argument on the primary field of each base table.
     $field_name = @$table_info['table']['base']['field'];
+
     if (!empty($field_name) && is_string($field_name) && !empty($table_info[$field_name])) {
       $field_info = $table_info[$field_name];
+
       if (!empty($field_info['argument']['handler'])) {
         $base = $field_info;
         $base['title'] = $field_info['title'] . ' (with operator)';
         $base['argument']['handler'] = 'views_autorefresh_handler_argument_base';
         $base['argument']['field'] = $field_name;
+
         unset($base['filter'], $base['field'], $base['relationship'], $base['sort']);
+
         $data[$table_name][$field_name . '_operator'] = $base;
       }
     }
