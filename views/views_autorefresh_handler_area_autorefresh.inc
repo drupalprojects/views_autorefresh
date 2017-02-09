@@ -77,10 +77,12 @@ class views_autorefresh_handler_area_autorefresh extends views_handler_area {
 
     $options = array();
 
-    foreach ($this->view->display as $display) {
-      if ($display->display_plugin == 'page') {
-        // TODO: check secondary display arguments.
-        $options[$display->id] = $display->display_title;
+    if ($this->view->display) {
+      foreach ($this->view->display as $display) {
+        if ($display->display_plugin == 'page') {
+          // @TODO: check secondary display arguments.
+          $options[$display->id] = $display->display_title;
+        }
       }
     }
 
@@ -260,8 +262,11 @@ class views_autorefresh_handler_area_autorefresh extends views_handler_area {
   function eval_ping_arguments($script) {
     $args = array();
 
-    if (empty($script)) return $args;
+    if (empty($script)) {
+      return $args;
+    }
 
+    // @TODO determine if necessary
     // Make view visible to script.
     $view = $this->view;
 

@@ -2,7 +2,7 @@
 
 class views_autorefresh_handler_argument_base extends views_handler_argument {
   /**
-   * Construct the instance
+   * Construct the instance.
    */
   function construct() {
     parent::construct();
@@ -11,7 +11,7 @@ class views_autorefresh_handler_argument_base extends views_handler_argument {
   }
 
   /**
-   * Build the query based upon the formula
+   * Build the query based upon the formula.
    */
   function query($group_by = FALSE) {
     $this->ensure_my_table();

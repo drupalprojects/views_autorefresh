@@ -25,7 +25,7 @@ function hook_views_autorefresh_nodejs_channel_alter(&$channel, $view) {
 /**
  * Alter the node.js message that gets sent to a view.
  *
- * @param Object message
+ * @param Object &$message
  *   A node.js message consisting of:
  *   - channel: the channel name
  *   - callback: the JavaScript node.js callback
