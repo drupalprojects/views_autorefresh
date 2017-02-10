@@ -31,6 +31,7 @@ function views_autorefresh_theme() {
  * Theme function for views_autorefresh.
  */
 function theme_views_autorefresh($variables) {
+  // Get Auto-Refresh settings.
   $interval = $variables['interval'];
   $ping = $variables['ping'];
   $trigger_onload = $variables['trigger_onload'];
@@ -42,22 +43,28 @@ function theme_views_autorefresh($variables) {
     $view = views_get_current_view();
   }
 
+  $view_name_id = $view->name . '-' . $view->current_display;
+
   // Add the JavaScript settings.
   drupal_add_js(drupal_get_path('module', 'views_autorefresh') . '/js/views_autorefresh.js');
-  drupal_add_js(array('views_autorefresh' => array($view->name . '-' . $view->current_display => array(
-    'interval' => $interval,
-    'ping' => $ping,
-    'trigger_onload' => $trigger_onload,
-    'incremental' => $incremental,
-    'nodejs' => $nodejs,
-  ))), 'setting');
+  drupal_add_js(array('views_autorefresh' => array(
+    $view_name_id => array(
+      'interval' => $interval,
+      'ping' => $ping,
+      'trigger_onload' => $trigger_onload,
+      'incremental' => $incremental,
+      'nodejs' => $nodejs,
+    )
+  )), 'setting');
 
   $timestamp = views_autorefresh_get_timestamp($view);
 
   if ($timestamp) {
-    drupal_add_js(array('views_autorefresh' => array($view->name . '-' . $view->current_display => array(
-      'timestamp' => $timestamp,
-    ))), 'setting');
+    drupal_add_js(array('views_autorefresh' => array(
+      $view_name_id => array(
+        'timestamp' => $timestamp,
+      )
+    )), 'setting');
   }
 
   // Signal modules to add their own plugins.
@@ -69,7 +76,7 @@ function theme_views_autorefresh($variables) {
     module_exists('nodejs') &&
     function_exists('nodejs_send_content_channel_token')
   ) {
-    $channel = 'views_autorefresh_' . $view->name . '-' . $view->current_display;
+    $channel = 'views_autorefresh_' . $view_name_id;
 
     drupal_alter('views_autorefresh_nodejs_channel', $channel, $view);
 
@@ -89,16 +96,19 @@ function theme_views_autorefresh($variables) {
 function views_autorefresh_views_ajax_data_alter(&$commands, $view) {
   $autorefresh = views_autorefresh_get_settings($view);
 
-  if (isset($_REQUEST['autorefresh']) && isset($autorefresh)) {
+  if (isset($_REQUEST['autorefresh']) && $_REQUEST['autorefresh'] && $autorefresh) {
+    $view_name_id = $view->name . '-' . $view->current_display;
+    $view_dom = '.view-dom-id-' . $view->dom_id;
+
     if ($commands) {
       foreach ($commands as $key => &$command) {
         if (
           !empty($autorefresh['incremental']) &&
           $command['command'] == 'insert' &&
-          $command['selector'] == ('.view-dom-id-' . $view->dom_id)
+          $command['selector'] == $view_dom
         ) {
           $command['command'] = 'viewsAutoRefreshIncremental';
-          $command['view_name'] = $view->name. '-' . $view->current_display;
+          $command['view_name'] = $view_name_id;
         }
 
         if ($command['command'] == 'viewsScrollTop') {
@@ -112,7 +122,7 @@ function views_autorefresh_views_ajax_data_alter(&$commands, $view) {
     if ($timestamp) {
       $commands[] = array(
         'command' => 'viewsAutoRefreshTriggerUpdate',
-        'selector' => '.view-dom-id-' . $view->dom_id,
+        'selector' => $view_dom,
         'timestamp' => $timestamp,
       );
     }
@@ -152,25 +162,30 @@ function views_autorefresh_get_timestamp($view) {
     return time();
   }
 
-  $arguments = isset($view->display[$autorefresh['display']]->display_options['arguments']) ?
-    $view->display[$autorefresh['display']]->display_options['arguments'] :
+  $autorefresh_display = $autorefresh['display'];
+  $arguments = isset($view->display[$autorefresh_display]->display_options['arguments']) ?
+    $view->display[$autorefresh_display]->display_options['arguments'] :
     $view->display['default']->display_options['arguments'];
 
   if ($arguments) {
     foreach ($arguments as $argument) {
       $handler = views_get_handler($argument['table'], $argument['field'], 'argument');
 
-      if ($handler->definition['handler'] == 'views_autorefresh_handler_argument_date') {
-        return time();
-      }
-      // Fallback to max primary key in view rows.
-      else if ($handler->definition['handler'] == 'views_autorefresh_handler_argument_base') {
-        // Find the max nid/uid/... of the result set.
-        $max_id = array_reduce($view->result, function($max_id, $row) use ($view) {
-          return max($max_id, $row->{$view->base_field});
-        }, ~PHP_INT_MAX);
+      switch ($handler->definition['handler']) {
+        case 'views_autorefresh_handler_argument_date':
+          return time();
 
-        return $max_id === ~PHP_INT_MAX ? FALSE : $max_id;
+          break;
+        case 'views_autorefresh_handler_argument_base':
+          // Fallback to max primary key in view rows.
+          // Find the max nid/uid/... of the result set.
+          $max_id = array_reduce($view->result, function($max_id, $row) use ($view) {
+            return max($max_id, $row->{$view->base_field});
+          }, ~PHP_INT_MAX);
+
+          return $max_id === ~PHP_INT_MAX ? FALSE : $max_id;
+
+          break;
       }
     }
   }
@@ -184,13 +199,12 @@ function views_autorefresh_get_timestamp($view) {
 function views_autorefresh_views_pre_render(&$view) {
   // Reset information about first display instead of the second display (incremental approach only).
   // @TODO Check if it's necessary to reset any further information
-  if (
-    isset($_REQUEST['original_view_data']) &&
-    !empty($_REQUEST['original_view_data']['view_display_id']) &&
-    isset($_REQUEST['original_view_data']['view_dom_id']) &&
-    $_REQUEST['original_view_data']['view_dom_id'] == $view->dom_id
-  ) {
-    $view->current_display = $_REQUEST['original_view_data']['view_display_id'];
+  $original_view_data = isset($_REQUEST['original_view_data']) ? $_REQUEST['original_view_data'] : array();
+  $original_view_display_id = $original_view_data && isset($original_view_data['view_display_id']) ? $original_view_data['view_display_id'] : '';
+  $original_view_dom_id = $original_view_data && isset($original_view_data['view_dom_id']) ? $original_view_data['view_dom_id'] : '';
+
+  if ($original_view_display_id && $original_view_dom_id == $view->dom_id) {
+    $view->current_display = $original_view_display_id;
   }
 }
 
@@ -198,11 +212,13 @@ function views_autorefresh_views_pre_render(&$view) {
  * Implements hook_form_FORM_ID_alter().
  */
 function views_autorefresh_form_views_ui_add_item_form_alter(&$form, $form_state) {
-  if ($form_state['type'] != 'header') {
-    $type = $form_state['type'];
-    $types = views_object_types();
+  $type = isset($form_state['type']) ? $form_state['type'] : '';
 
-    if (isset($types[$type]['type']) && ($types[$type]['type'] == 'area')) {
+  if ($type != 'header') {
+    $types = views_object_types();
+    $view_type = $types && isset($types[$type]) && isset($types[$type]['type']) ? $types[$type]['type'] : '';
+
+    if ($view_type == 'area') {
       unset($form['options']['name']['views.autorefresh']);
     }
   }
@@ -212,7 +228,10 @@ function views_autorefresh_form_views_ui_add_item_form_alter(&$form, $form_state
  * Helper function to refresh a view through nodejs.
  */
 function views_autorefresh_nodejs_refresh($views, $context) {
-  if (module_exists('nodejs') && function_exists('nodejs_send_content_channel_message')) {
+  if (
+    module_exists('nodejs') &&
+    function_exists('nodejs_send_content_channel_message')
+  ) {
     if ($views) {
       foreach ($views as $view_name) {
         $message = (object) array(

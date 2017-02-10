@@ -35,11 +35,9 @@ function hook_views_autorefresh_nodejs_channel_alter(&$channel, $view) {
  *   message altering hook to perform its logic.
  */
 function hook_views_autorefresh_nodejs_message_alter(&$message, $context) {
-  if (
-    $message->view_name == 'story_activity-page_1' &&
-    is_object($context) &&
-    !empty($context->nid)
-  ) {
-    $message->channel .= '-' . $context->nid;
+  $nid = is_object($context) && isset($context->nid) ? $context->nid : '';
+
+  if ($nid && $message->view_name == 'story_activity-page_1') {
+    $message->channel .= '-' . $nid;
   }
 }

@@ -86,6 +86,8 @@ class views_autorefresh_handler_area_autorefresh extends views_handler_area {
       }
     }
 
+    $incremental_advanced = $this->options['incremental_advanced'];
+
     $form['display'] = array(
       '#type' => 'select',
       '#title' => t('Secondary display'),
@@ -109,61 +111,61 @@ class views_autorefresh_handler_area_autorefresh extends views_handler_area {
     $form['incremental_advanced']['sourceSelector'] = array(
       '#type' => 'textfield',
       '#title' => t('Source selector'),
-      '#default_value' => $this->options['incremental_advanced']['sourceSelector'],
+      '#default_value' => $incremental_advanced['sourceSelector'],
       '#description' => t('A jQuery selector expression representing the main view container of your secondary display.'),
     );
     $form['incremental_advanced']['targetSelector'] = array(
       '#type' => 'textfield',
       '#title' => t('Target selector'),
-      '#default_value' => $this->options['incremental_advanced']['targetSelector'],
+      '#default_value' => $incremental_advanced['targetSelector'],
       '#description' => t('A jQuery selector expression representing the main view container of your primary display.'),
     );
     $form['incremental_advanced']['emptySelector'] = array(
       '#type' => 'textfield',
       '#title' => t('Empty selector'),
-      '#default_value' => $this->options['incremental_advanced']['emptySelector'],
+      '#default_value' => $incremental_advanced['emptySelector'],
       '#description' => t('A jQuery selector expression representing the main view container in case of empty results.'),
     );
     $form['incremental_advanced']['afterSelector'] = array(
       '#type' => 'textfield',
       '#title' => t('Header selector'),
-      '#default_value' => $this->options['incremental_advanced']['afterSelector'],
+      '#default_value' => $incremental_advanced['afterSelector'],
       '#description' => t('A jQuery selector expression representing the view header, in case the header is displayed with empty results.'),
     );
     $form['incremental_advanced']['targetStructure'] = array(
       '#type' => 'textfield',
       '#title' => t('Target structure'),
-      '#default_value' => $this->options['incremental_advanced']['targetStructure'],
+      '#default_value' => $incremental_advanced['targetStructure'],
       '#description' => t('An HTML fragment describing the view skeleton in case of empty results.'),
     );
     $form['incremental_advanced']['firstClass'] = array(
       '#type' => 'textfield',
       '#title' => t('First row class'),
-      '#default_value' => $this->options['incremental_advanced']['firstClass'],
+      '#default_value' => $incremental_advanced['firstClass'],
       '#description' => t('A class to be added to the first result row.'),
     );
     $form['incremental_advanced']['lastClass'] = array(
       '#type' => 'textfield',
       '#title' => t('Last row class'),
-      '#default_value' => $this->options['incremental_advanced']['lastClass'],
+      '#default_value' => $incremental_advanced['lastClass'],
       '#description' => t('A class to be added to the last result row.'),
     );
     $form['incremental_advanced']['oddClass'] = array(
       '#type' => 'textfield',
       '#title' => t('Odd rows class'),
-      '#default_value' => $this->options['incremental_advanced']['oddClass'],
+      '#default_value' => $incremental_advanced['oddClass'],
       '#description' => t('A class to be added to each odd result row.'),
     );
     $form['incremental_advanced']['evenClass'] = array(
       '#type' => 'textfield',
       '#title' => t('Even rows class'),
-      '#default_value' => $this->options['incremental_advanced']['evenClass'],
+      '#default_value' => $incremental_advanced['evenClass'],
       '#description' => t('A class to be added to each even result row.'),
     );
     $form['incremental_advanced']['rowClassPrefix'] = array(
       '#type' => 'textfield',
       '#title' => t('Row class prefix'),
-      '#default_value' => $this->options['incremental_advanced']['rowClassPrefix'],
+      '#default_value' => $incremental_advanced['rowClassPrefix'],
       '#description' => t('The prefix of a class to be added to each result row. The row number will be appended to this prefix.'),
     );
     $form['ping'] = array(
@@ -238,21 +240,22 @@ class views_autorefresh_handler_area_autorefresh extends views_handler_area {
 
     if ($this->options['incremental']) {
       $display = $this->view->display[$this->options['display']];
+      $incremental_advanced = $this->options['incremental_advanced'];
 
       $args['incremental'] = array(
         'view_base_path' => $display->display_options['path'],
         'view_display_id' => $display->id,
         'view_name' => $this->view->name,
-        'sourceSelector' => $this->options['incremental_advanced']['sourceSelector'],
-        'targetSelector' => $this->options['incremental_advanced']['targetSelector'],
-        'emptySelector' => $this->options['incremental_advanced']['emptySelector'],
-        'afterSelector' => $this->options['incremental_advanced']['afterSelector'],
-        'targetStructure' => $this->options['incremental_advanced']['targetStructure'],
-        'firstClass' => $this->options['incremental_advanced']['firstClass'],
-        'lastClass' => $this->options['incremental_advanced']['lastClass'],
-        'oddClass' => $this->options['incremental_advanced']['oddClass'],
-        'evenClass' => $this->options['incremental_advanced']['evenClass'],
-        'rowClassPrefix' => $this->options['incremental_advanced']['rowClassPrefix'],
+        'sourceSelector' => $incremental_advanced['sourceSelector'],
+        'targetSelector' => $incremental_advanced['targetSelector'],
+        'emptySelector' => $incremental_advanced['emptySelector'],
+        'afterSelector' => $incremental_advanced['afterSelector'],
+        'targetStructure' => $incremental_advanced['targetStructure'],
+        'firstClass' => $incremental_advanced['firstClass'],
+        'lastClass' => $incremental_advanced['lastClass'],
+        'oddClass' => $incremental_advanced['oddClass'],
+        'evenClass' => $incremental_advanced['evenClass'],
+        'rowClassPrefix' => $incremental_advanced['rowClassPrefix'],
       );
     }
 
