@@ -55,7 +55,7 @@
               Drupal.settings.views_autorefresh[view_name_id].target = this;
 
               // Stop the timer when a user clicks or changes a form element.
-              $('input, select, textarea', Drupal.settings.views_autorefresh[view_name].target)
+              $('input, select, textarea', Drupal.settings.views_autorefresh[view_name_id].target)
                 .click(function () {
                   if (!Drupal.settings.views_autorefresh[view_name_id].incremental) {
                     clearTimeout(Drupal.settings.views_autorefresh[view_name_id].timer);
